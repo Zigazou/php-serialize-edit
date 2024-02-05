@@ -178,6 +178,7 @@ class TestPHPSerializeEdit(TestCase):
         except ParseError as e:
             raise AssertionError(f'Error on {expression}: {e}')
     @parameterized.expand([
+        ["invalid", b'G:"abc\\'],
         ["invalid", b'x '],
         ["invalid", b'D:x1 xx8 5 99713'],
         ["invalid", b':"  3/  " dQ  R}h% A} ^xxx/ $ xxI x\'[ xx'],

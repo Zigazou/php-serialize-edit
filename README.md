@@ -132,5 +132,19 @@ Delete examples:
 - `D:"a"/"b"` deletes the `"b"` key in a PHP array indexed by the `"a"` key in
   another PHP array (The `"a"` is not deleted)
 
+## Unserializing
+This script uses an intermediate data structure to hold anything necessary to
+reencode a PHP structure back to its serialized version.
+
+The intermediate data structure uses standard Python data types:
+
+- PHP integer → Python int
+- PHP double → Python float
+- PHP array → Python list of tuples (key, value)
+- PHP boolean → Python bool
+- PHP null → Python None
+- PHP object → Python tuple (class_name, list_of_properties) where
+  list_of_properties is a list of tuples (key, value)
+
 ## License
 MIT License
