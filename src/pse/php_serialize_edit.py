@@ -553,6 +553,9 @@ class Query(Parser):
         self.read_must(QUERY_START_OBJECT)
 
         class_name = self._parse_string()
+        if len(class_name) == 0:
+            raise ParseError(self.current, "Class name can not be empty")
+
         self.read_must(QUERY_ITEM_SEPARATOR)
         properties = self._parse_array()
 

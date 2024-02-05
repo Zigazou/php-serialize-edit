@@ -268,6 +268,7 @@ class TestPHPSerializeEdit(TestCase):
         ["invalid", b': '],
         ["invalid", b'D 3 14 " ,"" 5  iV (vxx & %"x " ~ s\'xh2 x = / - 8 98 2 xxx'],
         ["invalid", b' G:x9 x9x4 x70. 4x 1 /xxE c +x/ ") "- 9 9 2.58x2 99 '],
+        ["invalid", b'S:={"",[]}'],
     ])
     def test_invalid(self, _name, expression):
         with self.assertRaises(ParseError):
