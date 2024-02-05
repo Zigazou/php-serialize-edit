@@ -1,5 +1,7 @@
 # PHP Serialize Edit
 
+![Workflow state](https://github.com/Zigazou/php-serialize-edit/actions/workflows/python-package.yml/badge.svg)
+
 ## Description
 PHP Serialize Edit is a script which can be included in your projects to
 manipulate PHP serialized data from Python 3.
