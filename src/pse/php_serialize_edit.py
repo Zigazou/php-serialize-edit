@@ -422,6 +422,16 @@ class Query(Parser):
         super().__init__(EMPTY)
         self.structure = structure
 
+        self.callbacks = {
+            QUERY_START_STRING: self._parse_string,
+            QUERY_START_ARRAY: self._parse_array,
+            QUERY_START_OBJECT: self._parse_object,
+            QUERY_TRUE[0:1]: self._parse_true,
+            QUERY_FALSE[0:1]: self._parse_false,
+            QUERY_NULL[0:1]: self._parse_null,
+        }
+
+
     def _parse_string(self) -> bytes:
         self.read_must(QUERY_START_STRING)
 
@@ -563,18 +573,9 @@ class Query(Parser):
 
     def _parse_value(self):
         """Parse a value from the query string"""
-        callbacks = {
-            QUERY_START_STRING: self._parse_string,
-            QUERY_START_ARRAY: self._parse_array,
-            QUERY_START_OBJECT: self._parse_object,
-            QUERY_TRUE[0:1]: self._parse_true,
-            QUERY_FALSE[0:1]: self._parse_false,
-            QUERY_NULL[0:1]: self._parse_null,
-        }
-
         chunk = self.chunk()
-        if chunk in callbacks:
-            return callbacks[chunk]()
+        if chunk in self.callbacks:
+            return self.callbacks[chunk]()
 
         if is_valid_int_start(chunk):
             return self._parse_number()
