@@ -525,12 +525,8 @@ class Query(Parser):
     def _parse_array(self) -> list:
         self.read_must(QUERY_START_ARRAY)
 
-        if self.chunk() == QUERY_END_ARRAY:
-            self.read_must(QUERY_END_ARRAY)
-            return []
-
         array = []
-        while not self.end_of_data():
+        while not self.end_of_data() and self.chunk() != QUERY_END_ARRAY:
             key = self._parse_value()
             self.read_must(QUERY_KEY_VALUE_SEPARATOR)
             value = self._parse_value()
@@ -540,10 +536,8 @@ class Query(Parser):
                 self.read_must(QUERY_ITEM_SEPARATOR)
                 continue
 
-            if self.chunk() == QUERY_END_ARRAY:
-                break
-
-            raise ParseError(self.current, "Unexpected char in array")
+            if self.chunk() != QUERY_END_ARRAY:
+                raise ParseError(self.current, "Unexpected char in array")
 
         self.read_must(QUERY_END_ARRAY)
 
