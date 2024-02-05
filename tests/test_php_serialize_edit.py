@@ -69,8 +69,10 @@ class TestPHPSerializeEdit(TestCase):
 
     @parameterized.expand([
         ["int", b"i:124;", b"S:=125", b"i:125;"],
-        ["set", b"b:0;", b'S:=[["a":"b","c":"d"]:true]',
+        ["set1", b"b:0;", b'S:=[["a":"b","c":"d"]:true]',
             b'a:1:{a:2:{s:1:"a";s:1:"b";s:1:"c";s:1:"d";}b:1;}'],
+        ["set2", b"b:0;", b'S:={"Person",["name":"Jane","age":25]}',
+            b'O:6:"Person":2:{s:4:"name";s:4:"Jane";s:3:"age";i:25;}'],
         ["array1", b"a:2:{i:0;i:0;i:1;i:1;}", b"D:1", b"a:1:{i:0;i:0;}"],
         ["array2",
             b'a:3:{i:0;a:2:{s:1:"a";b:1;s:1:"b";b:0;}i:1;i:0;i:2;i:1;}',

@@ -60,6 +60,8 @@ QUERY_DELETE = b"D"
 QUERY_COMMAND_SEPARATOR = b":"
 QUERY_START_ARRAY = b"["
 QUERY_END_ARRAY = b"]"
+QUERY_START_OBJECT = b"{"
+QUERY_END_OBJECT = b"}"
 QUERY_KEY_VALUE_SEPARATOR = b":"
 QUERY_ITEM_SEPARATOR = b","
 QUERY_TRUE = b"true"
@@ -537,31 +539,47 @@ class Query(Parser):
 
         return array
 
+    def _parse_object(self) -> (bytes, list):
+        self.read_must(QUERY_START_OBJECT)
+
+        class_name = self._parse_string()
+        self.read_must(QUERY_ITEM_SEPARATOR)
+        properties = self._parse_array()
+
+        self.read_must(QUERY_END_OBJECT)
+
+        return (class_name, properties)
+
+    def _parse_true(self):
+        self.read_must(QUERY_TRUE)
+        return True
+
+    def _parse_false(self):
+        self.read_must(QUERY_FALSE)
+        return False
+
+    def _parse_null(self):
+        self.read_must(QUERY_NULL)
+
     def _parse_value(self):
         """Parse a value from the query string"""
+        callbacks = {
+            QUERY_START_STRING: self._parse_string,
+            QUERY_START_ARRAY: self._parse_array,
+            QUERY_START_OBJECT: self._parse_object,
+            QUERY_TRUE[0:1]: self._parse_true,
+            QUERY_FALSE[0:1]: self._parse_false,
+            QUERY_NULL[0:1]: self._parse_null,
+        }
+
         chunk = self.chunk()
-        if chunk == QUERY_START_STRING:
-            return self._parse_string()
+        if chunk in callbacks:
+            return callbacks[chunk]()
 
         if is_valid_int_start(chunk):
             return self._parse_number()
 
-        if self.chunk(4) == QUERY_TRUE:
-            self.read_bytes(4)
-            return True
-
-        if self.chunk(5) == QUERY_FALSE:
-            self.read_bytes(5)
-            return False
-
-        if self.chunk(4) == QUERY_NULL:
-            self.read_bytes(4)
-            return None
-
-        if chunk == QUERY_START_ARRAY:
-            return self._parse_array()
-
-        raise ParseError(self.current, "Was expecting a value")
+        raise ParseError(self.current, "Expected a value")
 
     def _parse_command(self):
         """Parse a command from the query string"""
