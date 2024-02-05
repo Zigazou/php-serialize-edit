@@ -86,6 +86,13 @@ The "G:" string introducing the get mode is directly followed by a selector.
 
 It returns the pointed value or `None` if it cannot be found.
 
+Get examples:
+
+- `G:` returns the structure as-is
+- `G:0` returns the item indexed by the `0` (integer) key in a PHP array
+- `G:"a"/"b"` returns the item indexed by `"b"` in a PHP array indexed by `"a"`
+  in a PHP array
+
 ### Set
 The "S:" string introducing the set mode is followed by:
 
@@ -106,10 +113,24 @@ The value can be:
 
 *Note: if the selector does not point to an existing value, the entire path is created and then the value is set.*
 
+Set examples:
+
+- `S:=3` sets the value to `3` (it will always return `i:3;`)
+- `S:0=3` set the value of the first element in a PHP array to `3`
+- `S:"a"/"b"="hello"` sets the item indexed by `"b"` in a PHP array indexed by
+   `"a"` in a PHP array to the string `"hello"`
+
 ## Delete
 The "D:" string introducing the delete mode is directly followed by a selector.
 
 It deletes the pointed value if it exists.
+
+Delete examples:
+
+- `D:` returns an empty string
+- `D:0` deletes the first element in a PHP array
+- `D:"a"/"b"` deletes the `"b"` key in a PHP array indexed by the `"a"` key in
+  another PHP array (The `"a"` is not deleted)
 
 ## License
 MIT License
