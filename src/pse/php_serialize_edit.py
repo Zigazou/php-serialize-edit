@@ -445,16 +445,16 @@ class Query(Parser):
                 escaping = True
                 self.next_byte()
             elif self.chunk() == QUERY_END_STRING:
-                break
+                self.read_must(QUERY_END_STRING)
+                return string
             else:
                 string += self.read_bytes()
 
         if escaping:
             raise ParseError(self.current, "Incomplete escape sequence")
 
-        self.read_must(QUERY_END_STRING)
+        raise ParseError(self.current, "Unterminated string")
 
-        return string
 
     def _parse_number(self):
         number_string = EMPTY
@@ -582,27 +582,22 @@ class Query(Parser):
     def _parse_command(self):
         """Parse a command from the query string"""
         command_id = self.chunk()
-        if command_id == QUERY_GET:
-            self.read_must(QUERY_GET)
-            self.read_must(QUERY_COMMAND_SEPARATOR)
-            selector = self._parse_selector()
-            return (QUERY_GET, selector, None)
+
+        if command_id not in [QUERY_GET, QUERY_SET, QUERY_DELETE]:
+            raise ParseError(self.current, f"Unknown command '{command_id}'.")
+
+        self.read_must(command_id)
+        self.read_must(QUERY_COMMAND_SEPARATOR)
+        selector = self._parse_selector()
 
         if command_id == QUERY_SET:
-            self.read_must(QUERY_SET)
-            self.read_must(QUERY_COMMAND_SEPARATOR)
-            selector = self._parse_selector()
             self.read_must(QUERY_EQUAL)
             value = self._parse_value()
-            return (QUERY_SET, selector, value)
+        else:
+            value = None
 
-        if command_id == QUERY_DELETE:
-            self.read_must(QUERY_DELETE)
-            self.read_must(QUERY_COMMAND_SEPARATOR)
-            selector = self._parse_selector()
-            return (QUERY_DELETE, selector, None)
+        return (command_id, selector, value)
 
-        raise ParseError(self.current, f"Unknown command '{command_id}'.")
 
     def _set(self, selector, value, structure):
         """Set a value in the structure"""
