@@ -265,7 +265,7 @@ class PHPUnserializer(Parser):
 
         return array
 
-    def _object_from_bytes(self) -> (bytes, list):
+    def _object_from_bytes(self) -> tuple[bytes, list]:
         """Decode a PHP object"""
         self.read_must(PHP_OBJECT)
         self.read_must(PHP_FIELD_SEPARATOR)
@@ -543,7 +543,7 @@ class Query(Parser):
 
         return array
 
-    def _parse_object(self) -> (bytes, list):
+    def _parse_object(self) -> tuple[bytes, list]:
         self.read_must(QUERY_START_OBJECT)
 
         class_name = self._parse_string()
