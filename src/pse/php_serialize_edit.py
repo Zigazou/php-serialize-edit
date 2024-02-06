@@ -138,7 +138,7 @@ class Parser:
     def __init__(self, data: bytes):
         self.reset(data)
 
-    def reset(self, data: bytes):
+    def reset(self, data: bytes) -> None:
         """Reset the parser with new data"""
         # Stream to unserialize.
         self.data = data
@@ -150,23 +150,23 @@ class Parser:
         """Checks if the parser has reached the end of the data stream"""
         return self.current >= len(self.data)
 
-    def next_byte(self, increment: int = 1):
+    def next_byte(self, increment: int = 1) -> None:
         """Moves the current position in the data stream forward by the
         specified increment (defaults to 1)"""
         self.current += increment
 
-    def chunk(self, length: int = 1):
+    def chunk(self, length: int = 1) -> bytes:
         """Returns a chunk of bytes from the data stream without moving the
         current position forward. Without parameters, returns the next byte."""
         return self.data[self.current:self.current+length]
 
-    def read_until(self, stop: bytes):
+    def read_until(self, stop: bytes) -> bytes:
         """Reads bytes from the data stream until the specified stop sequence"""
         before, _ = self.data[self.current:].split(stop, 1)
         self.next_byte(len(before))
         return before
 
-    def read_bytes(self, length: bytes = 1):
+    def read_bytes(self, length: bytes = 1) -> bytes:
         """Reads the specified number of bytes from the data stream."""
         start = self.chunk(length)
         self.next_byte(len(start))
@@ -287,7 +287,7 @@ class PHPUnserializer(Parser):
 
         return (class_name, props)
 
-    def from_bytes(self):
+    def from_bytes(self) -> int|float|list|tuple[bytes, list]|bool|None:
         """Decode a PHP_ serialized value from a bytes object"""
         php_type = self.chunk()
         if php_type not in self.callbacks:
@@ -320,6 +320,14 @@ class PHPSerializer:
 
     def __init__(self, data):
         self.reset(data)
+
+        self.callbacks = {
+            bytes: self._string_to_bytes,
+            bool: self._bool_to_bytes,
+            int: self._int_to_bytes,
+            float: self._float_to_bytes,
+            list: self._array_to_bytes,
+        }
 
     def reset(self, data):
         """Reset the serializer with new data"""
@@ -393,20 +401,8 @@ class PHPSerializer:
 
     def to_bytes(self) -> bytes:
         """Converts the given Python object into PHP serialized format."""
-        if isinstance(self.data, bytes):
-            return self._string_to_bytes()
-
-        if isinstance(self.data, bool):
-            return self._bool_to_bytes()
-
-        if isinstance(self.data, int):
-            return self._int_to_bytes()
-
-        if isinstance(self.data, float):
-            return self._float_to_bytes()
-
-        if isinstance(self.data, list):
-            return self._array_to_bytes()
+        if type(self.data) in self.callbacks:
+            return self.callbacks[type(self.data)]()
 
         if is_object(self.data):
             return self._object_to_bytes()
@@ -456,7 +452,7 @@ class Query(Parser):
         raise ParseError(self.current, "Unterminated string")
 
 
-    def _parse_number(self):
+    def _parse_number(self) -> int|float:
         number_string = EMPTY
         if self.chunk() == MINUS:
             number_string = MINUS
@@ -557,18 +553,18 @@ class Query(Parser):
 
         return (class_name, properties)
 
-    def _parse_true(self):
+    def _parse_true(self) -> bool:
         self.read_must(QUERY_TRUE)
         return True
 
-    def _parse_false(self):
+    def _parse_false(self) -> bool:
         self.read_must(QUERY_FALSE)
         return False
 
-    def _parse_null(self):
+    def _parse_null(self) -> None:
         self.read_must(QUERY_NULL)
 
-    def _parse_value(self):
+    def _parse_value(self) -> int|float|list|tuple[bytes, list]|bool|None:
         """Parse a value from the query string"""
         chunk = self.chunk()
         if chunk in self.callbacks:
@@ -579,7 +575,7 @@ class Query(Parser):
 
         raise ParseError(self.current, "Expected a value")
 
-    def _parse_command(self):
+    def _parse_command(self) -> tuple[bytes, list, int|float|bytes|tuple|list]:
         """Parse a command from the query string"""
         command_id = self.chunk()
 
@@ -599,7 +595,7 @@ class Query(Parser):
         return (command_id, selector, value)
 
 
-    def _set(self, selector, value, structure):
+    def _set(self, selector: list, value, structure):
         """Set a value in the structure"""
         if selector == []:
             return value
