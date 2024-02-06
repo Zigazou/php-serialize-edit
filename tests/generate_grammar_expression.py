@@ -22,6 +22,7 @@ NULL = 12
 KEY_VALUE = 13
 DIGIT = 14
 CHAR = 15
+OBJECT = 16
 
 GRAMMAR = {
     COMMAND: [OR, GET, SET, DELETE],
@@ -30,13 +31,14 @@ GRAMMAR = {
     DELETE: [AND, "D:", SELECTOR],
     SELECTOR: [OR, INDEX, [AND, INDEX, '/', SELECTOR]],
     INDEX: [OR, NUMBER, STRING],
-    VALUE: [OR, NUMBER, STRING, ARRAY, BOOL, NULL],
+    VALUE: [OR, NUMBER, STRING, ARRAY, OBJECT, BOOL, NULL],
     ARRAY: [AND, '[', KEY_VALUE, [MANY, [AND, ',', KEY_VALUE]], ']'],
     KEY_VALUE: [AND, VALUE, ':', VALUE],
     NUMBER: [AND, [MAYBE, '-'], DIGIT, [MANY, DIGIT], [MAYBE, [AND, '.', [MANY, DIGIT]]]],
     STRING: [AND, '"', CHAR, [MANY, CHAR], '"'],
     BOOL: [OR, 'true', 'false'],
     NULL: 'null',
+    OBJECT: [AND, '{', STRING, ',', ARRAY, '}'],
     NOTHING: '',
     DIGIT: [OR, '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
     CHAR: [OR,
